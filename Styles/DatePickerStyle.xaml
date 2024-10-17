@@ -1,0 +1,8 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style x:Key="DatePickerStyle" TargetType="DatePicker">
+        <Setter Property="Border.BorderBrush" Value="#B3D9FF"/>
+        <Setter Property="Border.BorderThickness" Value="1"/>
+        <Setter Property="Border.CornerRadius" Value="20"/>
+    </Style>
+</ResourceDictionary>

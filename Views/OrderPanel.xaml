@@ -1,0 +1,63 @@
+﻿<UserControl x:Class="BakingApplication.Views.OrderPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:BakingApplication.Views"
+             xmlns:viewmodels="clr-namespace:BakingApplication.ViewModels" 
+             d:DataContext="{d:DesignInstance Type=viewmodels:OrderViewModel}"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="90" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="200" />
+        </Grid.RowDefinitions>
+        <Button Grid.Row="0" Height="30" Width="150" FontSize="16" Style="{StaticResource SoftRectangleBackgroundButtonStyle}" Content="История заказов" Command="{Binding OrderListCommand}"/>
+        <ListBox Grid.Row="1" BorderThickness="0" ItemsSource="{Binding OrderModel.BakingCount}"
+         ItemContainerStyle="{StaticResource OrderBakingsItemStyle}" ScrollViewer.HorizontalScrollBarVisibility="Hidden">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Grid Margin="0 20 0 20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="50" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="60" />
+                            <ColumnDefinition Width="70" />
+                        </Grid.ColumnDefinitions>
+
+                        <Image Grid.Column="0" Source="{Binding Path=BakingModel.Picture}" Width="40" Height="40" Margin="5" Stretch="Fill" />
+                        <TextBlock Grid.Column="1" Grid.Row="0" FontSize="18" MaxWidth="220" Text="{Binding Path=BakingModel.Name}" VerticalAlignment="Center" />
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="10 0 10 0">
+                            <TextBlock FontSize="18" Text="{Binding Path=BakingModel.Cost}" />
+                            <TextBlock FontSize="18" Text=" ₽" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Margin="10 0 10 0">
+                            <Button FontSize="18" Content="-" Style="{StaticResource ClearButtonStyle}" Margin="0 0 5 0" 
+                                    Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Path=DataContext.DecreaseBakingCountCommand}" CommandParameter="{Binding .}"/>
+                            <TextBox FontSize="18" Text="{Binding Path=Count, Converter={StaticResource NumberOnlyConverter}, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ClearTextBoxStyle}" AcceptsReturn="False"  />
+                            <Button FontSize="18" Content="+" Style="{StaticResource ClearButtonStyle}" Margin="5 0 0 0"
+                                    Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Path=DataContext.IncreaseBakingCountCommand}" CommandParameter="{Binding .}"/>
+                        </StackPanel>
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+        <Grid Grid.Row="2" Background="#B3D9FF">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="20">
+                <TextBlock FontSize="18" Text="Сумма: " />
+                <TextBlock FontSize="18" Text="{Binding OrderModel.Amount}" />
+            </StackPanel>
+            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="20" HorizontalAlignment="Center">
+                <Button Height="30" Width="150" FontSize="18" Style="{StaticResource SoftRectanleBorderButtonStyle}" Content="Печать" Command="{Binding PrintOrderCommand}" />
+                <Button Height="30" Width="150" FontSize="18" Margin="20 0 0 0" Style="{StaticResource SoftRectanleBorderButtonStyle}" Content="Очистить" Command="{Binding ClearOrderCommand}"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

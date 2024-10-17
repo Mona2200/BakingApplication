@@ -1,0 +1,11 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ControlTemplate x:Key="CustomWindowTemplate" TargetType="{x:Type Window}">
+        <Border BorderBrush="#B3D9FF" BorderThickness="1" Background="White" CornerRadius="30">
+            <Grid>
+                <ContentPresenter/>
+                <Button Command="{Binding CloseWindowCommand}" Style="{StaticResource ClearButtonStyle}" VerticalAlignment="Top" HorizontalAlignment="Right" FontSize="20"  Margin="15" Content="✕"/>
+            </Grid>
+        </Border>
+    </ControlTemplate>
+</ResourceDictionary>

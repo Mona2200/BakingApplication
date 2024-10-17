@@ -1,0 +1,36 @@
+﻿<Application x:Class="BakingApplication.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:BakingApplication"
+             xmlns:viewmodels="clr-namespace:BakingApplication.ViewModels"
+             xmlns:utilities="clr-namespace:BakingApplication.Utilities"
+             Startup="OnStartup">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+
+                <ResourceDictionary Source="Styles/ClearButtonStyle.xaml" />
+                <ResourceDictionary Source="Styles/WindowTemplate.xaml" />
+                <ResourceDictionary Source="Styles/BakingsItemStyle.xaml" />
+                <ResourceDictionary Source="Styles/OrderBakingsItemStyle.xaml" />
+                <ResourceDictionary Source="Styles/RoundedBackgroundButtonStyle.xaml" />
+                <ResourceDictionary Source="Styles/RoundedBorderButtonStyle.xaml" />
+                <ResourceDictionary Source="Styles/SoftRectangleBackgroundButtonStyle.xaml" />
+                <ResourceDictionary Source="Styles/SoftRectangleBorderButtonStyle.xaml" />
+                <ResourceDictionary Source="Styles/AddBakingFormStyle.xaml" />
+                <ResourceDictionary Source="Styles/ClearItemStyle.xaml" />
+                <ResourceDictionary Source="Styles/DatePickerStyle.xaml" />
+                <ResourceDictionary Source="Styles/TableStyle.xaml" />
+
+                <ResourceDictionary>
+                    <utilities:NumberOnlyConverter x:Key="NumberOnlyConverter"/>
+                </ResourceDictionary>
+                
+            </ResourceDictionary.MergedDictionaries>
+
+            
+
+        </ResourceDictionary>
+
+    </Application.Resources>
+</Application>

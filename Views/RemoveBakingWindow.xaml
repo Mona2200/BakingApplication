@@ -1,0 +1,28 @@
+﻿<Window x:Class="BakingApplication.Views.RemoveBakingWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:BakingApplication.Views"
+        xmlns:viewmodels="clr-namespace:BakingApplication.ViewModels"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize" AllowsTransparency="True" Background="Transparent" WindowStyle="None" Template="{StaticResource CustomWindowTemplate}"
+        d:DataContext="{d:DesignInstance Type=viewmodels:RemoveBakingViewModel}"
+        mc:Ignorable="d"
+        Height="150" Width="780">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="620" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <StackPanel Grid.Column="1" Margin="0 40 0 20">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="10">
+                <TextBlock FontSize="18" Text="Удалить " />
+                <TextBlock FontSize="18" Text="{Binding SelectedBaking.Name}" />
+                <TextBlock FontSize="18" Text="?" />
+            </StackPanel>
+            <Button Height="30" Width="120" FontSize="16" Content="Подтвердить" Style="{StaticResource SoftRectangleBackgroundButtonStyle}" Command="{Binding RemoveBakingCommand}" CommandParameter="{Binding SelectedBaking}"/>
+        </StackPanel>
+    </Grid>
+</Window>
