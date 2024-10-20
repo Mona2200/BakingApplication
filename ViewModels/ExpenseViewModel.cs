@@ -38,7 +38,7 @@ public class ExpenseViewModel : INotifyPropertyChanged
         {
             _startTime = value;
             OnPropertyChanged(nameof(StartTime));
-            Initialize();
+            InitializeExpenseCollection().ConfigureAwait(false).GetAwaiter().GetResult();
         }
     }
 
@@ -50,11 +50,11 @@ public class ExpenseViewModel : INotifyPropertyChanged
         {
             _endTime = value;
             OnPropertyChanged(nameof(EndTime));
-            Initialize();
+            InitializeExpenseCollection().ConfigureAwait(false).GetAwaiter().GetResult();
         }
     }
 
-    private ObservableCollection<ExpenseTypeModel> _expenseTypes;
+    private ObservableCollection<ExpenseTypeModel> _expenseTypes = new();
     public ObservableCollection<ExpenseTypeModel> ExpenseTypes
     {
         get => _expenseTypes;
@@ -76,14 +76,14 @@ public class ExpenseViewModel : INotifyPropertyChanged
         }
     }
 
-    private ObservableCollection<ExpenseModel> _expenseModel;
-    public ObservableCollection<ExpenseModel> ExpenseModel
+    private ObservableCollection<ExpenseModel> _expenseModel = new();
+    public ObservableCollection<ExpenseModel> ExpenseModels
     {
         get => _expenseModel;
         set
         {
             _expenseModel = value;
-            OnPropertyChanged(nameof(ExpenseModel));
+            OnPropertyChanged(nameof(ExpenseModels));
         }
     }
 
@@ -101,11 +101,11 @@ public class ExpenseViewModel : INotifyPropertyChanged
         ExpenseSeriesCollection = new();
         _startTime = DateTime.Now - TimeSpan.FromDays(30);
         _endTime = DateTime.Now;
-        Initialize();
         AddExpenseWindowCommand = new(o => ShowAddExpenseWindow());
         DeleteExpenseCommand = new(async o => await DeleteExpense(o));
         PointLabel = (chartPoint, name) =>
                 string.Format($"{name}={chartPoint.Y} ({chartPoint.Participation:P})");
+        InitializeExpenseCollection().ConfigureAwait(false).GetAwaiter().GetResult();
     }
 
     private async Task DeleteExpense(object o)
@@ -114,28 +114,25 @@ public class ExpenseViewModel : INotifyPropertyChanged
             return;
         ExpenseModel expenseModel = (ExpenseModel)o;
         await _expenseRepository.DeleteExpenseAsync(expenseModel.Id);
-        ExpenseModel.Remove(expenseModel);
-        if (!ExpenseModel.Any(e => e.ExpenseType.Id == expenseModel.ExpenseType.Id))
-            ExpenseTypes.Remove(expenseModel.ExpenseType);
-        UpdatePie();
+        InitializeExpenseCollection().ConfigureAwait(false).GetAwaiter().GetResult();
     }
 
-    private void Initialize()
+    private async Task InitializeExpenseCollection()
     {
-        List<Expense> expenses = _expenseRepository.GetExpenses(StartTime, EndTime);
-        List<ExpenseTypeModel> expenseTypes = _expenseRepository.GetExpenseTypes().Select(e => new ExpenseTypeModel(e)).ToList();
+        ExpenseModels.Clear();
+        ExpenseTypes.Clear();
 
-        List<ExpenseModel> expenseModels = expenses.Select(e => new ExpenseModel()
-        {
-            Id = e.Id,
-            Time = e.Time,
-            ExpenseType = expenseTypes.First(t => t.Id == e.ExpenseTypeId),
-            Amount = e.Amount,
-            Description = e.Description
-        }).ToList();
-
-        ExpenseModel = new ObservableCollection<ExpenseModel>(expenseModels);
-        ExpenseTypes = new ObservableCollection<ExpenseTypeModel>(expenseTypes);
+        await foreach (ExpenseType expenseType in _expenseRepository.GetExpenseTypesAsAsyncEnumerable())
+            ExpenseTypes.Add(new ExpenseTypeModel(expenseType));
+        await foreach (Expense expense in _expenseRepository.GetExpensesAsAsyncEnumerable(StartTime, EndTime))
+            ExpenseModels.Add(new ExpenseModel()
+            {
+                Id = expense.Id,
+                Time = expense.Time,
+                ExpenseType = ExpenseTypes.First(t => t.Id == expense.ExpenseTypeId),
+                Amount = expense.Amount,
+                Description = expense.Description
+            });
         UpdatePie();
     }
 
@@ -170,15 +167,13 @@ public class ExpenseViewModel : INotifyPropertyChanged
             addExpenseModel.ExpenseType = expenseType;
 
         Expense expense = await _expenseRepository.AddExpenseAsync(addExpenseModel);
-        if (addExpenseModel.ExpenseType.Id == 0)
-            ExpenseTypes.Add(new ExpenseTypeModel() { Id = expense.ExpenseTypeId, Name = addExpenseModel.ExpenseType.Name });
-        Initialize();
+        InitializeExpenseCollection().ConfigureAwait(false).GetAwaiter().GetResult();
         _addExpenseViewModel.CloseWindowCommand.Execute(obj);
     }
 
     public void UpdatePie()
     {
-        Dictionary<string, int> expenses = ExpenseModel.GroupBy(e => e.ExpenseType.Name).ToDictionary(e => e.Key, e => e.Sum(ex => ex.Amount));
+        Dictionary<string, int> expenses = ExpenseModels.GroupBy(e => e.ExpenseType.Name).ToDictionary(e => e.Key, e => e.Sum(ex => ex.Amount));
         ExpenseSeriesCollection.Clear();
         ExpenseSeriesCollection.AddRange(expenses.Select(e => new PieSeries()
         {

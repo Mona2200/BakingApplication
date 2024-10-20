@@ -39,7 +39,7 @@
             </Grid>
 
             <DataGrid x:Name="Table" Grid.Row="2" AutoGenerateColumns="False" HorizontalGridLinesBrush="#94C5F6"
-                RowBackground="White" ItemsSource="{Binding ExpenseModel}" Margin="0 20" Style="{StaticResource TableStyle}" 
+                RowBackground="White" ItemsSource="{Binding ExpenseModels}" Margin="0 20" Style="{StaticResource TableStyle}" 
                       CanUserDeleteRows="False" CanUserAddRows="False" CanUserResizeRows="False" FontSize="16" SelectedItem="{Binding SelectedExpenseModel, Mode=TwoWay}">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Категория" Binding="{Binding Path=ExpenseType.Name}" Width="250" CanUserSort="False" IsReadOnly="True" CanUserResize="False" CanUserReorder="False"/>
@@ -66,19 +66,4 @@
             </StackPanel>
         </Grid>
     </Grid>
-
-
-    <!--<Button Content="Удалить" Width="150" Height="30" FontSize="18" Margin="15 0 0 0" IsEnabled="False">
-        <Button.Style>
-            <Style TargetType="Button">
-                <Setter Property="IsEnabled" Value="False"/>
-                <Style.Triggers>
-                    <DataTrigger Binding="{Binding SelectedItems.Count, Source=Table}" Value="1">
-                        <Setter Property="IsEnabled" Value="True"/>
-                    </DataTrigger>
-                </Style.Triggers>
-            </Style>
-        </Button.Style>
-    </Button>-->
-
 </UserControl>

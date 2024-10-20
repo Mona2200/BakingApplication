@@ -13,11 +13,6 @@ public class BakingRepository : IBakingRepository
     public BakingRepository(BakingApplicationContext context)
     {
         _context = context;
-
-        DateTime timeMin = DateTime.Now - TimeSpan.FromDays(90);
-        List<Order> orders = _context.Orders.Where(o => o.Date < timeMin).ToList();
-        _context.Orders.RemoveRange(orders);
-        _context.SaveChanges();
     }
 
     public async Task<Baking> AddBakingAsync(BakingModel bakingModel)
@@ -56,36 +51,30 @@ public class BakingRepository : IBakingRepository
         Baking? baking = await _context.Bakings.SingleOrDefaultAsync(b => b.Id == id);
         if (baking != null)
         {
+            List<BakingOrder> bakingOrders = _context.BakingOrders.Where(bo => bo.BakingId == id).ToList();
+            int[] bakingOrderIds = bakingOrders.Select(bo => bo.Id).ToArray();
+            List<Order> orders = _context.Orders.Where(o => bakingOrderIds.Contains(o.Id)).ToList();
             _context.Bakings.Remove(baking);
+            _context.BakingOrders.RemoveRange(bakingOrders);
+            _context.Orders.RemoveRange(orders);
             await _context.SaveChangesAsync();
         }
     }
 
-    public List<Baking> GetBakings()
+    public IAsyncEnumerable<Baking> GetBakingsAsAsyncEnumerable(string? search = null)
     {
-        return _context.Bakings.ToList();
-    }
-
-    public IAsyncEnumerable<Baking> GetBakingsAsAsyncEnumerable()
-    {
+        if (search != null)
+            return _context.Bakings.Where(b => b.Name.ToLowerInvariant().Contains(search.ToLowerInvariant())).AsAsyncEnumerable();
         return _context.Bakings.AsAsyncEnumerable();
     }
 
-    public Task<List<Baking>> GetBakingsAsync()
+    public async IAsyncEnumerable<Baking> GetBakingsByOrderAsAsyncEnumerable(int orderId)
     {
-        return _context.Bakings.ToListAsync();
-    }
-
-    public List<Baking> GetBakingsByOrder(int orderId)
-    {
-        List<Baking> bakings = [];
-        IEnumerable<BakingOrder> bakingOrders = _context.BakingOrders.Where(bo => bo.OrderId == orderId);
-        foreach (BakingOrder bakingOrder in bakingOrders)
+        await foreach (BakingOrder bakingOrder in _context.BakingOrders.Where(bo => bo.OrderId == orderId).AsAsyncEnumerable())
         {
             Baking baking = _context.Bakings.Find(bakingOrder.BakingId)!;
-            bakings.Add(baking);
+            yield return baking;
         }
-        return bakings;
     }
 
     public async Task UpdateBakingAsync(BakingModel bakingModel)

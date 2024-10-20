@@ -26,6 +26,7 @@ public class MainViewModel : INotifyPropertyChanged
 
     public RelayCommand SwitchPanel { get; set; }
     public RelayCommand CloseWindowCommand { get; set; }
+    public RelayCommand HideWindowCommand { get; set; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -48,6 +49,7 @@ public class MainViewModel : INotifyPropertyChanged
             }
         });
         CloseWindowCommand = new(o => mainWindow.Close());
+        HideWindowCommand = new(o => mainWindow.WindowState = System.Windows.WindowState.Minimized);
         SelectUserControl = _catalogPanel;
     }
 

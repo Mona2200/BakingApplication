@@ -5,16 +5,23 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BakingApplication.Data.Repositories;
 
-public class ExpenseRepository(BakingApplicationContext context) : IExpenseRepository
+public class ExpenseRepository : IExpenseRepository
 {
+    private readonly BakingApplicationContext _context;
+
+    public ExpenseRepository(BakingApplicationContext context)
+    {
+        _context = context;
+    }
+
     public async Task<Expense> AddExpenseAsync(ExpenseModel expense)
     {
         int expenseTypeId;
         if (expense.ExpenseType.Id == 0)
         {
             ExpenseType expenseType = new() { Name = expense.ExpenseType.Name };
-            await context.ExpenseTypes.AddAsync(expenseType);
-            await context.SaveChangesAsync();
+            await _context.ExpenseTypes.AddAsync(expenseType);
+            await _context.SaveChangesAsync();
             expenseTypeId = expenseType.Id;
         }
         else
@@ -26,34 +33,35 @@ public class ExpenseRepository(BakingApplicationContext context) : IExpenseRepos
             Time = expense.Time,
             Description = expense.Description,
         };
-        await context.Expenses.AddAsync(newExpense);
-        await context.SaveChangesAsync();
+        await _context.Expenses.AddAsync(newExpense);
+        await _context.SaveChangesAsync();
         return newExpense;
     }
 
     public async Task DeleteExpenseAsync(int id)
     {
-        Expense expense = await context.Expenses.SingleAsync(e => e.Id == id);
-        context.Expenses.Remove(expense);
-        if (!context.Expenses.Any(e => e.ExpenseTypeId == expense.ExpenseTypeId))
-        await DeleteExpenseTypeAsync(expense.ExpenseTypeId);
-        await context.SaveChangesAsync();
+        Expense expense = await _context.Expenses.SingleAsync(e => e.Id == id);
+        _context.Expenses.Remove(expense);
+        await _context.SaveChangesAsync();
+        if (!_context.Expenses.Any(e => e.ExpenseTypeId == expense.ExpenseTypeId))
+            await DeleteExpenseTypeAsync(expense.ExpenseTypeId);
+        await _context.SaveChangesAsync();
     }
 
     public async Task DeleteExpenseTypeAsync(int id)
     {
-        ExpenseType expenseType = await context.ExpenseTypes.SingleAsync(e => e.Id == id);
-        context.ExpenseTypes.Remove(expenseType);
-        await context.SaveChangesAsync();
+        ExpenseType expenseType = await _context.ExpenseTypes.SingleAsync(e => e.Id == id);
+        _context.ExpenseTypes.Remove(expenseType);
+        await _context.SaveChangesAsync();
     }
 
-    public List<Expense> GetExpenses(DateTime startTime, DateTime endTime)
+    public IAsyncEnumerable<Expense> GetExpensesAsAsyncEnumerable(DateTime startTime, DateTime endTime)
     {
-        return context.Expenses.Where(e => e.Time >= startTime && e.Time <= endTime).ToList();
+        return _context.Expenses.Where(e => e.Time.Date >= startTime.Date && e.Time.Date <= endTime.Date).AsAsyncEnumerable();
     }
 
-    public List<ExpenseType> GetExpenseTypes()
+    public IAsyncEnumerable<ExpenseType> GetExpenseTypesAsAsyncEnumerable()
     {
-        return context.ExpenseTypes.ToList();
+        return _context.ExpenseTypes.AsAsyncEnumerable();
     }
 }

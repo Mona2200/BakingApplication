@@ -10,6 +10,7 @@
         ResizeMode="NoResize" AllowsTransparency="True" Background="White" WindowStyle="None" Template="{StaticResource CustomWindowTemplate}"
         Title="MainWindow" Height="Auto" Width="Auto">
 
+    
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
@@ -39,5 +40,7 @@
         <ContentControl Grid.Column="0" Grid.Row="1" Content="{Binding SelectUserControl}"/>
         <Grid Grid.Column="1" Grid.RowSpan="2" Width="1" Background="#B3D9FF" />
         <local:OrderPanel Grid.Column="2" Grid.RowSpan="2" DataContext="{Binding OrderViewModel}" />
+
+        <Button Grid.RowSpan="3" Grid.ColumnSpan="3" Command="{Binding HideWindowCommand}" Style="{StaticResource ClearButtonStyle}" VerticalAlignment="Top" HorizontalAlignment="Right" FontSize="20"  Margin="15 15 55 15" Content="_"/>
     </Grid>
 </Window>

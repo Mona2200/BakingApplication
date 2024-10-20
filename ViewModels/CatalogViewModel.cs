@@ -2,7 +2,6 @@
 using BakingApplication.Data.Enitties;
 using BakingApplication.Data.Interfaces;
 using BakingApplication.Models;
-using BakingApplication.Utilities;
 using BakingApplication.Views;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -34,6 +33,18 @@ public class CatalogViewModel : INotifyPropertyChanged
         }
     }
 
+    private string _search;
+    public string Search
+    {
+        get => _search;
+        set
+        {
+            _search = value;
+            InitilizeBakingCollection(_search).ConfigureAwait(false).GetAwaiter().GetResult();
+            OnPropertyChanged(nameof(Search));
+        }
+    }
+
     public RelayCommand AddBakingToOrderCommand { get; set; }
     public RelayCommand AddBakingWindowCommand { get; set; }
     public RelayCommand EditBakingWindowCommand { get; set; }
@@ -58,11 +69,12 @@ public class CatalogViewModel : INotifyPropertyChanged
         NoPhotoBakingImage.BeginInit();
         NoPhotoBakingImage.StreamSource = new FileStream("Images/No_photo.png", FileMode.Open, FileAccess.Read);
         NoPhotoBakingImage.EndInit();
-        Bakings = InitilizeBakingCollection();
+        Bakings = new();
         AddBakingWindowCommand = new(o => ShowAddBakingWindows(o));
         EditBakingWindowCommand = new(o => ShowEditBakingWindow(o));
         RemoveBakingWindowCommand = new(o => ShowRemoveBakingWindow(o));
         AddBakingToOrderCommand = new(o => AddBakingToOrder(o));
+        InitilizeBakingCollection().ConfigureAwait(false).GetAwaiter().GetResult();
     }
 
     private void AddBakingToOrder(object o)
@@ -116,10 +128,10 @@ public class CatalogViewModel : INotifyPropertyChanged
         _addBakingWindow.ShowDialog();
     }
 
-    public ObservableCollection<BakingModel> InitilizeBakingCollection()
+    public async Task InitilizeBakingCollection(string? search = null)
     {
-        List<BakingModel> bakings = [];
-        foreach (Baking baking in _bakingRepository.GetBakings())
+        Bakings.Clear();
+        await foreach (Baking baking in _bakingRepository.GetBakingsAsAsyncEnumerable(search))
         {
             BitmapImage? image = null;
             if (baking.HasPicture)
@@ -129,7 +141,7 @@ public class CatalogViewModel : INotifyPropertyChanged
                 image.StreamSource = new MemoryStream(baking.Picture!);
                 image.EndInit();
             }
-            bakings.Add(new BakingModel()
+            Bakings.Add(new BakingModel()
             {
                 Id = baking.Id,
                 Name = baking.Name,
@@ -139,16 +151,13 @@ public class CatalogViewModel : INotifyPropertyChanged
                 Picture = image ?? NoPhotoBakingImage
             });
         }
-        return new ObservableCollection<BakingModel>(bakings);
     }
 
     public void ShowAddBakingWindows(object obj)
     {
         _addBakingViewModel.CloseWindowCommand = new(o => _addBakingWindow.DialogResult = false);
         _addBakingViewModel.AddBakingCommand = new(async o => await AddBakingModel(o));
-        _addBakingViewModel.AddBaking = new();
-        _addBakingViewModel.AddBaking.Picture = NoPhotoBakingImage;
-        _addBakingViewModel.AddBaking.HasPicture = false;
+        _addBakingViewModel.AddBaking = new() { Picture = NoPhotoBakingImage, HasPicture = false };
         _addBakingWindow = new();
         _addBakingWindow.Owner = _mainWindow;
         _addBakingWindow.DataContext = _addBakingViewModel;
@@ -187,7 +196,7 @@ public class CatalogViewModel : INotifyPropertyChanged
             _addBakingViewModel.ErrorMessage = "Вес не указан";
             return;
         }
-        await _bakingRepository.UpdateBakingAsync(addBaking);        
+        await _bakingRepository.UpdateBakingAsync(addBaking);
         _addBakingViewModel.CloseWindowCommand.Execute(obj);
     }
 

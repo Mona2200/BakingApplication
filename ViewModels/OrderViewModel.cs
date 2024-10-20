@@ -8,7 +8,9 @@ using GemBox.Spreadsheet;
 using System.ComponentModel;
 using System.Drawing.Printing;
 using System.Globalization;
+using System.IO;
 using System.Windows.Forms;
+using System.Windows.Media.Imaging;
 
 namespace BakingApplication.ViewModels;
 
@@ -63,7 +65,12 @@ public class OrderViewModel : INotifyPropertyChanged
             OrderModel = (OrderModel)o;
             _orderListWindow.DialogResult = false;
         });
-        _orderListViewModel.OrderModels = _orderListViewModel.InitilizeOrderCollection();
+        _orderListViewModel.DeleteOrderCommand = new(o =>
+        {
+            OrderModel order = (OrderModel)o;
+            _orderListViewModel.OrderModels.Remove(order);
+            _orderRepository.DeleteOrderAsync(order.Id);
+        });
         _orderListWindow = new();
         _orderListWindow.Owner = _mainWindow;
         _orderListWindow.DataContext = _orderListViewModel;
@@ -76,7 +83,6 @@ public class OrderViewModel : INotifyPropertyChanged
             return;
 
         SpreadsheetInfo.SetLicense("FREE-LIMITED-KEY");
-        DateTime time = DateTime.Now;
         CultureInfo culture = CultureInfo.CreateSpecificCulture("ru-RU");
 
         ExcelFile workbook = new ExcelFile();
@@ -89,54 +95,65 @@ public class OrderViewModel : INotifyPropertyChanged
         sheet.Columns[2].SetWidth(10, LengthUnit.CharacterWidth);
         sheet.Columns[3].SetWidth(15, LengthUnit.CharacterWidth);
 
+        // Логотип
+
+        sheet.Rows[0].SetHeight(50, LengthUnit.Point);
+        sheet.Cells.GetSubrangeAbsolute(1, 0, 1, 3).Merged = true;
+        FileStream fileStream = new("Images/logo.png", FileMode.Open, FileAccess.Read);
+        byte[] bytes = new byte[fileStream.Length];
+        await fileStream.ReadAsync(bytes, CancellationToken.None);
+        using MemoryStream memoryStream = new(bytes);
+
+        sheet.Pictures.Add(memoryStream, ExcelPictureFormat.Png, 160, 0, 50, 50, LengthUnit.Point);
+
         // Строка Фирма
-
-        sheet.Rows[0].SetHeight(15, LengthUnit.Point);
-        sheet.Cells.GetSubrangeAbsolute(0, 0, 0, 3).Merged = true;
-        sheet.Cells[0, 0].Value = "Фирма: \"Ням-Ням\"";
-
-        //Строка Дата
 
         sheet.Rows[1].SetHeight(15, LengthUnit.Point);
         sheet.Cells.GetSubrangeAbsolute(1, 0, 1, 3).Merged = true;
-        sheet.Cells[1, 0].Style.HorizontalAlignment = HorizontalAlignmentStyle.Right;
-        sheet.Cells[1, 0].Value = $"Дата: {time.ToString("«dd» MMMM yyyy", culture)}г.";
+        sheet.Cells[1, 0].Value = "Фирма: \"Ням-Ням\"";
 
-        sheet.Rows[2].SetHeight(5, LengthUnit.Point);
+        //Строка Дата
+
+        sheet.Rows[2].SetHeight(15, LengthUnit.Point);
+        sheet.Cells.GetSubrangeAbsolute(2, 0, 2, 3).Merged = true;
+        sheet.Cells[2, 0].Style.HorizontalAlignment = HorizontalAlignmentStyle.Right;
+        sheet.Cells[2, 0].Value = $"Дата: {OrderModel.Date.ToString("«dd» MMMM yyyy", culture)}г.";
+
+        sheet.Rows[3].SetHeight(5, LengthUnit.Point);
 
         // Заголовок таблицы
 
-        sheet.Rows[3].SetHeight(20, LengthUnit.Point);
-        sheet.Cells.GetSubrangeAbsolute(3, 0, 3, 3).Merged = true;
-        sheet.Cells[3, 0].Style.HorizontalAlignment = HorizontalAlignmentStyle.Center;
-        sheet.Cells[3, 0].Style.VerticalAlignment = VerticalAlignmentStyle.Center;
-        sheet.Cells[3, 0].Style.Font.Weight = 600;
-        sheet.Cells[3, 0].Value = "ТОВАРНЫЙ ЧЕК";
+        sheet.Rows[4].SetHeight(20, LengthUnit.Point);
+        sheet.Cells.GetSubrangeAbsolute(4, 0, 4, 3).Merged = true;
+        sheet.Cells[4, 0].Style.HorizontalAlignment = HorizontalAlignmentStyle.Center;
+        sheet.Cells[4, 0].Style.VerticalAlignment = VerticalAlignmentStyle.Center;
+        sheet.Cells[4, 0].Style.Font.Weight = 600;
+        sheet.Cells[4, 0].Value = "ТОВАРНЫЙ ЧЕК";
 
         // Шапка таблицы
 
-        sheet.Rows[4].SetHeight(15, LengthUnit.Point);
-        sheet.Rows[4].Style.Borders.SetBorders(MultipleBorders.Top, SpreadsheetColor.FromName(ColorName.Black), LineStyle.Thin);
-        sheet.Rows[4].Style.Borders.SetBorders(MultipleBorders.Bottom, SpreadsheetColor.FromName(ColorName.Black), LineStyle.Thin);
+        sheet.Rows[5].SetHeight(15, LengthUnit.Point);
+        sheet.Rows[5].Style.Borders.SetBorders(MultipleBorders.Top, SpreadsheetColor.FromName(ColorName.Black), LineStyle.Thin);
+        sheet.Rows[5].Style.Borders.SetBorders(MultipleBorders.Bottom, SpreadsheetColor.FromName(ColorName.Black), LineStyle.Thin);
 
-        sheet.Cells[4, 0].Value = "Наименование товара";
-        sheet.Cells[4, 0].Style.Borders.SetBorders(MultipleBorders.Right, SpreadsheetColor.FromName(ColorName.Black), LineStyle.Thin);
-        sheet.Cells[4, 0].Style.HorizontalAlignment = HorizontalAlignmentStyle.Center;
+        sheet.Cells[5, 0].Value = "Наименование товара";
+        sheet.Cells[5, 0].Style.Borders.SetBorders(MultipleBorders.Right, SpreadsheetColor.FromName(ColorName.Black), LineStyle.Thin);
+        sheet.Cells[5, 0].Style.HorizontalAlignment = HorizontalAlignmentStyle.Center;
 
-        sheet.Cells[4, 1].Value = "Кол-во";
-        sheet.Cells[4, 1].Style.Borders.SetBorders(MultipleBorders.Right, SpreadsheetColor.FromName(ColorName.Black), LineStyle.Thin);
-        sheet.Cells[4, 1].Style.HorizontalAlignment = HorizontalAlignmentStyle.Center;
+        sheet.Cells[5, 1].Value = "Кол-во";
+        sheet.Cells[5, 1].Style.Borders.SetBorders(MultipleBorders.Right, SpreadsheetColor.FromName(ColorName.Black), LineStyle.Thin);
+        sheet.Cells[5, 1].Style.HorizontalAlignment = HorizontalAlignmentStyle.Center;
 
-        sheet.Cells[4, 2].Value = "Цена";
-        sheet.Cells[4, 2].Style.Borders.SetBorders(MultipleBorders.Right, SpreadsheetColor.FromName(ColorName.Black), LineStyle.Thin);
-        sheet.Cells[4, 2].Style.HorizontalAlignment = HorizontalAlignmentStyle.Center;
+        sheet.Cells[5, 2].Value = "Цена";
+        sheet.Cells[5, 2].Style.Borders.SetBorders(MultipleBorders.Right, SpreadsheetColor.FromName(ColorName.Black), LineStyle.Thin);
+        sheet.Cells[5, 2].Style.HorizontalAlignment = HorizontalAlignmentStyle.Center;
 
-        sheet.Cells[4, 3].Value = "Сумма";
-        sheet.Cells[4, 3].Style.HorizontalAlignment = HorizontalAlignmentStyle.Center;
+        sheet.Cells[5, 3].Value = "Сумма";
+        sheet.Cells[5, 3].Style.HorizontalAlignment = HorizontalAlignmentStyle.Center;
 
         // Заполнение таблицы
 
-        int rowIndex = 5;
+        int rowIndex = 6;
 
         foreach (OrderBakingModel baking in OrderModel.BakingCount)
         {
@@ -164,7 +181,7 @@ public class OrderViewModel : INotifyPropertyChanged
 
         sheet.Rows[rowIndex].SetHeight(20, LengthUnit.Point);
         sheet.Cells.GetSubrangeAbsolute(rowIndex, 0, rowIndex, 3).Merged = true;
-        sheet.Cells[rowIndex++, 0].Value = $"Всего: {NumberToWordsConverter.Convert(OrderModel.Amount)} рублей";
+        sheet.Cells[rowIndex++, 0].Value = $"Всего: {OrderModel.Amount} ({NumberToWordsConverter.Convert(OrderModel.Amount)}) рублей";
 
         // Строка Подпись продавца
 
@@ -194,7 +211,7 @@ public class OrderViewModel : INotifyPropertyChanged
 
         await _orderRepository.AddOrderAsync(new Order()
         {
-            Date = time,
+            Date = OrderModel.Date,
             Amount = OrderModel.Amount
         },
             OrderModel.BakingCount.ToDictionary(b => b.BakingId, b => b.Count));

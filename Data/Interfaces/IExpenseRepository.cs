@@ -5,10 +5,9 @@ namespace BakingApplication.Data.Interfaces;
 
 public interface IExpenseRepository
 {
+    IAsyncEnumerable<Expense> GetExpensesAsAsyncEnumerable(DateTime startTime, DateTime endTime);
 
-    List<Expense> GetExpenses(DateTime startTime, DateTime endTime);
-
-    List<ExpenseType> GetExpenseTypes();
+    IAsyncEnumerable<ExpenseType> GetExpenseTypesAsAsyncEnumerable();
 
     Task<Expense> AddExpenseAsync(ExpenseModel expense);
 

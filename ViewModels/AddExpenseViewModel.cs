@@ -1,10 +1,8 @@
 ﻿using BakingApplication.Commands;
-using BakingApplication.Data.Enitties;
 using BakingApplication.Data.Interfaces;
 using BakingApplication.Models;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Windows.Controls;
 
 namespace BakingApplication.ViewModels;
 

@@ -8,7 +8,16 @@ public class OrderModel : INotifyPropertyChanged
 {
     public int Id { get; set; }
 
-    public DateTime Date { get; set; }
+    private DateTime _data = DateTime.Now;
+    public DateTime Date
+    {
+        get => _data;
+        set
+        {
+            _data = value;
+            OnPropertyChanged(nameof(Date));
+        }
+    }
 
     private int _amount;
     public int Amount

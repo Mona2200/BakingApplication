@@ -1,18 +1,13 @@
 ﻿using BakingApplication.Data.Enitties;
 using BakingApplication.Models;
-using System.Collections.ObjectModel;
 
 namespace BakingApplication.Data.Interfaces;
 
 public interface IBakingRepository
 {
-    IAsyncEnumerable<Baking> GetBakingsAsAsyncEnumerable();
+    IAsyncEnumerable<Baking> GetBakingsAsAsyncEnumerable(string? search = null);
 
-    Task<List<Baking>> GetBakingsAsync();
-
-    List<Baking> GetBakings();
-
-    List<Baking> GetBakingsByOrder(int orderId);
+    IAsyncEnumerable<Baking> GetBakingsByOrderAsAsyncEnumerable(int orderId);
 
     Task<bool> AnyBeaconByIdAsync(int id);
 

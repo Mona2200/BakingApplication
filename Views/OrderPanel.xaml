@@ -48,13 +48,18 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
                 <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="20">
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="20 10 20 5">
                 <TextBlock FontSize="18" Text="Сумма: " />
                 <TextBlock FontSize="18" Text="{Binding OrderModel.Amount}" />
             </StackPanel>
-            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="20" HorizontalAlignment="Center">
+            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="20 10 20 5">
+                <TextBlock FontSize="18" Text="Дата: " />
+                <DatePicker FontSize="18" SelectedDate="{Binding OrderModel.Date}" BorderBrush="Transparent"/>
+            </StackPanel>
+            <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="20 5" HorizontalAlignment="Center">
                 <Button Height="30" Width="150" FontSize="18" Style="{StaticResource SoftRectanleBorderButtonStyle}" Content="Печать" Command="{Binding PrintOrderCommand}" />
                 <Button Height="30" Width="150" FontSize="18" Margin="20 0 0 0" Style="{StaticResource SoftRectanleBorderButtonStyle}" Content="Очистить" Command="{Binding ClearOrderCommand}"/>
             </StackPanel>

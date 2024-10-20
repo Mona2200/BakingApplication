@@ -4,12 +4,33 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BakingApplication.Data.Repositories;
 
-public class OrderRepository(BakingApplicationContext context) : IOrderRepository
+public class OrderRepository : IOrderRepository
 {
+    private readonly BakingApplicationContext _context;
+
+    public OrderRepository(BakingApplicationContext context)
+    {
+        _context = context;
+        ClearOldData().ConfigureAwait(false).GetAwaiter().GetResult();
+    }
+
+    private async Task ClearOldData()
+    {
+        DateTime timeMin = DateTime.Now - TimeSpan.FromDays(365);
+        List<Order> orders = await _context.Orders.Where(o => o.Date < timeMin).ToListAsync();
+        foreach (Order order in orders)
+        {
+            List<BakingOrder> bakingOrders = await _context.BakingOrders.Where(bo => bo.OrderId == order.Id).ToListAsync();
+            _context.BakingOrders.RemoveRange(bakingOrders);
+        }
+        _context.Orders.RemoveRange(orders);
+        await _context.SaveChangesAsync();
+    }
+
     public async Task<Order> AddOrderAsync(Order order, Dictionary<int, int> bakingIdCounts)
     {
-        await context.Orders.AddAsync(order);
-        await context.SaveChangesAsync();
+        await _context.Orders.AddAsync(order);
+        await _context.SaveChangesAsync();
         List<BakingOrder> bakingOrders = [];
         foreach (KeyValuePair<int, int> bakingIdCount in bakingIdCounts)
             for (int i = 0; i < bakingIdCount.Value; i++)
@@ -18,44 +39,34 @@ public class OrderRepository(BakingApplicationContext context) : IOrderRepositor
                     BakingId = bakingIdCount.Key,
                     OrderId = order.Id
                 });
-        await context.BakingOrders.AddRangeAsync(bakingOrders);
-        await context.SaveChangesAsync();
+        await _context.BakingOrders.AddRangeAsync(bakingOrders);
+        await _context.SaveChangesAsync();
         return order;
     }
 
     public async Task<bool> AnyOrderByIdAsync(int id)
     {
-        bool result = await context.Orders.AnyAsync(b => b.Id == id);
+        bool result = await _context.Orders.AnyAsync(b => b.Id == id);
         return result;
     }
 
     public async Task DeleteOrderAsync(int id)
     {
-        Order? order = await context.Orders.SingleOrDefaultAsync(b => b.Id == id);
+        Order? order = await _context.Orders.SingleOrDefaultAsync(b => b.Id == id);
         if (order != null)
         {
-            context.Orders.Remove(order);
-            await context.SaveChangesAsync();
+            _context.Orders.Remove(order);
+            await _context.SaveChangesAsync();
         }
-    }
-
-    public List<Order> GetOrders()
-    {
-        return context.Orders.ToList();
     }
 
     public IAsyncEnumerable<Order> GetOrdersAsAsyncEnumerable()
     {
-        return context.Orders.AsAsyncEnumerable();
+        return _context.Orders.OrderByDescending(o => o.Date).AsAsyncEnumerable();
     }
 
-    public Task<List<Order>> GetOrdersAsync()
+    public IAsyncEnumerable<Order> GetOrdersByDateAsAsyncEnumerable(DateOnly date)
     {
-        return context.Orders.ToListAsync();
-    }
-
-    public Task<List<Order>> GetOrdersByDateAsync(DateOnly date)
-    {
-        return context.Orders.Where(o => o.Date.Day == date.Day && o.Date.Month == date.Month && o.Date.Year == date.Year).ToListAsync();
+        return _context.Orders.Where(o => o.Date.Day == date.Day && o.Date.Month == date.Month && o.Date.Year == date.Year).AsAsyncEnumerable();
     }
 }

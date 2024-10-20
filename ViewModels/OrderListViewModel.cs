@@ -14,7 +14,7 @@ public class OrderListViewModel : INotifyPropertyChanged
     private readonly IOrderRepository _orderRepository;
     private readonly IBakingRepository _bakingRepository;
 
-    private ObservableCollection<OrderModel> _orderModels;
+    private ObservableCollection<OrderModel> _orderModels = new();
     public ObservableCollection<OrderModel> OrderModels
     {
         get => _orderModels;
@@ -29,6 +29,7 @@ public class OrderListViewModel : INotifyPropertyChanged
 
     public RelayCommand CloseWindowCommand { get; set; }
     public RelayCommand RepeatOrderCommand { get; set; }
+    public RelayCommand DeleteOrderCommand { get; set; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -36,17 +37,16 @@ public class OrderListViewModel : INotifyPropertyChanged
     {
         _orderRepository = orderRepository;
         _bakingRepository = bakingRepository;
-        OrderModels = InitilizeOrderCollection();
         NoPhotoBakingImage = new BitmapImage();
         NoPhotoBakingImage.BeginInit();
         NoPhotoBakingImage.StreamSource = new FileStream("Images/No_photo.png", FileMode.Open, FileAccess.Read);
         NoPhotoBakingImage.EndInit();
+        InitilizeOrderCollection().ConfigureAwait(false).GetAwaiter().GetResult();
     }
 
-    public ObservableCollection<OrderModel> InitilizeOrderCollection()
+    public async Task InitilizeOrderCollection()
     {
-        ObservableCollection<OrderModel> orders = [];
-        foreach (Order order in _orderRepository.GetOrders())
+        await foreach (Order order in _orderRepository.GetOrdersAsAsyncEnumerable())
         {
             OrderModel orderModel = new()
             {
@@ -55,10 +55,8 @@ public class OrderListViewModel : INotifyPropertyChanged
                 Date = order.Date,
             };
 
-            List<Baking> bakings = _bakingRepository.GetBakingsByOrder(order.Id);
             ObservableCollection<OrderBakingModel> orderBakingModels = [];
-
-            foreach (Baking baking in bakings)
+            await foreach (Baking baking in _bakingRepository.GetBakingsByOrderAsAsyncEnumerable(order.Id))
             {
                 if (orderBakingModels.Any(ob => ob.BakingId == baking.Id))
                     orderBakingModels.First(ob => ob.BakingId == baking.Id).Count += 1;
@@ -90,9 +88,8 @@ public class OrderListViewModel : INotifyPropertyChanged
                 }
             }
             orderModel.BakingCount = orderBakingModels;
-            orders.Add(orderModel);
+            OrderModels.Add(orderModel);
         }
-        return new ObservableCollection<OrderModel>(orders.OrderByDescending(o => o.Date));
     }
 
     protected virtual void OnPropertyChanged(string propertyName)
