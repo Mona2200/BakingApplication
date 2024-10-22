@@ -17,7 +17,9 @@ public class ExpenseViewModel : INotifyPropertyChanged
     private readonly MainWindow _mainWindow;
     private readonly IExpenseRepository _expenseRepository;
     private readonly AddExpenseViewModel _addExpenseViewModel;
+    private readonly StatisticsViewModel _statisticsViewModel;
     private AddExpenseWindow _addExpenseWindow;
+    private StatisticsWindow _statisticsWindow;
 
     private SeriesCollection _expenseSeriesCollection;
     public SeriesCollection ExpenseSeriesCollection
@@ -36,9 +38,12 @@ public class ExpenseViewModel : INotifyPropertyChanged
         get => _startTime;
         set
         {
-            _startTime = value;
-            OnPropertyChanged(nameof(StartTime));
-            InitializeExpenseCollection().ConfigureAwait(false).GetAwaiter().GetResult();
+            if (value < EndTime)
+            {
+                _startTime = value;
+                OnPropertyChanged(nameof(StartTime));
+                InitializeExpenseCollection().ConfigureAwait(false).GetAwaiter().GetResult();
+            }
         }
     }
 
@@ -48,9 +53,12 @@ public class ExpenseViewModel : INotifyPropertyChanged
         get => _endTime;
         set
         {
-            _endTime = value;
-            OnPropertyChanged(nameof(EndTime));
-            InitializeExpenseCollection().ConfigureAwait(false).GetAwaiter().GetResult();
+            if (value > StartTime)
+            {
+                _endTime = value;
+                OnPropertyChanged(nameof(EndTime));
+                InitializeExpenseCollection().ConfigureAwait(false).GetAwaiter().GetResult();
+            }
         }
     }
 
@@ -90,22 +98,34 @@ public class ExpenseViewModel : INotifyPropertyChanged
     public Func<ChartPoint, string, string> PointLabel { get; set; }
     public RelayCommand AddExpenseWindowCommand { get; set; }
     public RelayCommand DeleteExpenseCommand { get; set; }
+    public RelayCommand ShowStatisricsWindowCommand { get; set; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public ExpenseViewModel(MainWindow mainWindow, IExpenseRepository expenseRepository, AddExpenseViewModel addExpenseViewModel)
+    public ExpenseViewModel(MainWindow mainWindow, IExpenseRepository expenseRepository, AddExpenseViewModel addExpenseViewModel, StatisticsViewModel statisticsViewModel)
     {
         _mainWindow = mainWindow;
         _expenseRepository = expenseRepository;
         _addExpenseViewModel = addExpenseViewModel;
+        _statisticsViewModel = statisticsViewModel;
         ExpenseSeriesCollection = new();
         _startTime = DateTime.Now - TimeSpan.FromDays(30);
         _endTime = DateTime.Now;
         AddExpenseWindowCommand = new(o => ShowAddExpenseWindow());
         DeleteExpenseCommand = new(async o => await DeleteExpense(o));
+        ShowStatisricsWindowCommand = new(o => ShowStatisticsWindow());
         PointLabel = (chartPoint, name) =>
                 string.Format($"{name}={chartPoint.Y} ({chartPoint.Participation:P})");
         InitializeExpenseCollection().ConfigureAwait(false).GetAwaiter().GetResult();
+    }
+
+    private void ShowStatisticsWindow()
+    {
+        _statisticsViewModel.CloseWindowCommand = new(o => _statisticsWindow.DialogResult = false);
+        _statisticsWindow = new();
+        _statisticsWindow.Owner = _mainWindow;
+        _statisticsWindow.DataContext = _statisticsViewModel;
+        _statisticsWindow.ShowDialog();
     }
 
     private async Task DeleteExpense(object o)
@@ -138,7 +158,10 @@ public class ExpenseViewModel : INotifyPropertyChanged
 
     private void ShowAddExpenseWindow()
     {
-        _addExpenseViewModel.CloseWindowCommand = new(o => _addExpenseWindow.DialogResult = false);
+        _addExpenseViewModel.CloseWindowCommand = new(o => {
+            _addExpenseWindow.DialogResult = false;
+            _addExpenseViewModel.ErrorMessage = string.Empty;
+        });
         _addExpenseViewModel.AddExpenseCommand = new(async o => await AddExpenseToList(o));
         _addExpenseViewModel.ExpenseModel = new();
         _addExpenseViewModel.ExpenseTypes = ExpenseTypes;

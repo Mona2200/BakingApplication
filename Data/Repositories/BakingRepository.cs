@@ -3,6 +3,7 @@ using BakingApplication.Data.Interfaces;
 using BakingApplication.Models;
 using BakingApplication.Utilities;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 
 namespace BakingApplication.Data.Repositories;
 
@@ -63,8 +64,19 @@ public class BakingRepository : IBakingRepository
 
     public IAsyncEnumerable<Baking> GetBakingsAsAsyncEnumerable(string? search = null)
     {
-        if (search != null)
-            return _context.Bakings.Where(b => b.Name.ToLowerInvariant().Contains(search.ToLowerInvariant())).AsAsyncEnumerable();
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            search = search.ToLowerInvariant();
+            string searchWithUpperFirstChar = search;
+            string? firstChar = search.Substring(0, 1);
+            if (!string.IsNullOrEmpty(firstChar))
+            {
+                searchWithUpperFirstChar = searchWithUpperFirstChar.Remove(0, 1);
+                searchWithUpperFirstChar = searchWithUpperFirstChar.Insert(0, firstChar.ToUpperInvariant());
+            }
+            string upperSearch = search.ToUpperInvariant();
+            return _context.Bakings.Where(b => b.Name.Contains(search) || b.Name.Contains(searchWithUpperFirstChar) || b.Name.Contains(upperSearch)).AsAsyncEnumerable();
+        }
         return _context.Bakings.AsAsyncEnumerable();
     }
 

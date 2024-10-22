@@ -1,0 +1,51 @@
+﻿<Window x:Class="BakingApplication.Views.StatisticsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        xmlns:local="clr-namespace:BakingApplication.Views"
+        xmlns:viewmodels="clr-namespace:BakingApplication.ViewModels" 
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize" AllowsTransparency="True" Background="Transparent" WindowStyle="None" Template="{StaticResource CustomWindowTemplate}"
+        xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
+        d:DataContext="{d:DesignInstance Type=viewmodels:StatisticsViewModel}"
+        mc:Ignorable="d"
+        Height="450" Width="850">
+    <Grid>
+        <Grid Margin="50 20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="60"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0">
+                <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Grid.Row="0" Margin="10">
+                    <Border BorderBrush="#B3D9FF" BorderThickness="1" CornerRadius="20" Height="40">
+                        <DatePicker Width="150" Margin="5" BorderBrush="Transparent" BorderThickness="0" Background="Transparent" 
+                                FontSize="16" SelectedDate="{Binding StartTime}"/>
+                    </Border>
+                    <TextBlock FontSize="16" Text=" - "/>
+                    <Border BorderBrush="#B3D9FF" BorderThickness="1" CornerRadius="20" Height="40">
+                        <DatePicker Width="150" Margin="5" BorderBrush="Transparent" BorderThickness="0" Background="Transparent" 
+                                FontSize="16" SelectedDate="{Binding EndTime}"/>
+                    </Border>
+                    <Border Width="200" HorizontalAlignment="Left" BorderBrush="#B3D9FF" BorderThickness="1" CornerRadius="20" Margin="5 0 0 0">
+                        <ComboBox BorderBrush="Transparent" BorderThickness="0" Background="{x:Null}" Margin="5" FontSize="16" 
+                                  SelectedValue="{Binding SelectedWay, Mode=TwoWay}" IsEditable="True" IsReadOnly="True">
+                            <sys:String>По дням</sys:String>
+                            <sys:String>По неделям</sys:String>
+                            <sys:String>По месяцам</sys:String>
+                        </ComboBox>
+                    </Border>
+                </StackPanel>
+            </Grid>
+
+            <Grid Grid.Row="1" Margin="0 20">
+                <lvc:CartesianChart  Series="{Binding StatisticsSeriesCollection}" LegendLocation="Bottom"
+                    Hoverable="True" AxisX="{Binding XAxis}" Zoom="X" MouseMove="MoveChartCursorAndToolTip_OnMouseMove">
+                </lvc:CartesianChart>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>

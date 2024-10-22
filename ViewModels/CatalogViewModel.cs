@@ -119,7 +119,10 @@ public class CatalogViewModel : INotifyPropertyChanged
 
     private void ShowEditBakingWindow(object obj)
     {
-        _addBakingViewModel.CloseWindowCommand = new(o => _addBakingWindow.DialogResult = false);
+        _addBakingViewModel.CloseWindowCommand = new(o => {
+            _addBakingWindow.DialogResult = false;
+            _addBakingViewModel.ErrorMessage = string.Empty;
+        });
         _addBakingViewModel.AddBakingCommand = new(async o => await EditBakingModel(o));
         _addBakingViewModel.AddBaking = (BakingModel)obj;
         _addBakingWindow = new();
@@ -155,7 +158,10 @@ public class CatalogViewModel : INotifyPropertyChanged
 
     public void ShowAddBakingWindows(object obj)
     {
-        _addBakingViewModel.CloseWindowCommand = new(o => _addBakingWindow.DialogResult = false);
+        _addBakingViewModel.CloseWindowCommand = new(o => {
+            _addBakingWindow.DialogResult = false;
+            _addBakingViewModel.ErrorMessage = string.Empty;
+        });
         _addBakingViewModel.AddBakingCommand = new(async o => await AddBakingModel(o));
         _addBakingViewModel.AddBaking = new() { Picture = NoPhotoBakingImage, HasPicture = false };
         _addBakingWindow = new();

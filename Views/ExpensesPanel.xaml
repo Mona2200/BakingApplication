@@ -18,6 +18,13 @@
                 <RowDefinition Height="50"/>
             </Grid.RowDefinitions>
 
+            <Button Style="{StaticResource ClearButtonStyle}" Margin="3" Grid.Row="0" HorizontalAlignment="Right" Width="30" Height="30" ToolTip="Полная статистика"
+                    Command="{Binding ShowStatisricsWindowCommand}">
+                <Button.Content>
+                    <Image Source="../Images/chart.png"/>
+                </Button.Content>
+            </Button>
+
             <Grid Grid.Row="0">
                 <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" Grid.Row="0" Margin="10">
                     <Border BorderBrush="#B3D9FF" BorderThickness="1" CornerRadius="20" Height="40">

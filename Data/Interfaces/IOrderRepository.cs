@@ -6,7 +6,7 @@ public interface IOrderRepository
 {
     IAsyncEnumerable<Order> GetOrdersAsAsyncEnumerable();
 
-    IAsyncEnumerable<Order> GetOrdersByDateAsAsyncEnumerable(DateOnly date);
+    IAsyncEnumerable<Order> GetOrdersByDateAsAsyncEnumerable(DateTime startTime, DateTime endTime);
 
     Task<bool> AnyOrderByIdAsync(int id);
 

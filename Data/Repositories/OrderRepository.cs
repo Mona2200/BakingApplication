@@ -65,8 +65,8 @@ public class OrderRepository : IOrderRepository
         return _context.Orders.OrderByDescending(o => o.Date).AsAsyncEnumerable();
     }
 
-    public IAsyncEnumerable<Order> GetOrdersByDateAsAsyncEnumerable(DateOnly date)
+    public IAsyncEnumerable<Order> GetOrdersByDateAsAsyncEnumerable(DateTime startTime, DateTime endTime)
     {
-        return _context.Orders.Where(o => o.Date.Day == date.Day && o.Date.Month == date.Month && o.Date.Year == date.Year).AsAsyncEnumerable();
+        return _context.Orders.Where(o => o.Date >= startTime.Date && o.Date <= endTime.Date).AsAsyncEnumerable();
     }
 }

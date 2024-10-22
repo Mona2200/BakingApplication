@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Images\chart.png" />
     <None Remove="Images\search.png" />
   </ItemGroup>
 
@@ -31,6 +32,9 @@
 
   <ItemGroup>
     <None Include="Data\BakingApplicationContext.cs" />
+    <Resource Include="Images\chart.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Images\logo.png" />
     <EmbeddedResource Include="Images\No_photo.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
